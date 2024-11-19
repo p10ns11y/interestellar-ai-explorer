@@ -1,52 +1,35 @@
+// mod schema; // Declares `simulation.rs` as a module
+
 pub mod simulation {
+    use crate::schema::schema::{Environment, Planet, Species, Trait};
+    use pyo3::prelude::*;
     use rand::Rng;
-    use std::collections::HashMap;
 
-    #[derive(Debug, Clone)]
-    pub struct Planet {
-        pub name: String,
-        pub environment: Environment,
-        pub species: HashMap<String, Species>,
+    fn simulate_ai_evolution(species: &Species) -> PyResult<Trait> {
+        Python::with_gil(|py| -> PyResult<Trait> {
+            let current_dir = std::env::current_dir()?;
+            let sys = py.import("sys")?;
+            sys.getattr("path")?
+                .call_method1("append", (current_dir.to_str(),))?;
+
+            // TODO: fix module resolution
+            let evolution_module = py.import("evolution")?;
+            let result = evolution_module.call_method0("evolve_species")?;
+            // Process result
+            let selected_trait = match result.extract::<String>()? {
+                ref s if s == "Intelligent" => Trait::Intelligent,
+                ref s if s == "Aggressive" => Trait::Aggressive,
+                ref s if s == "Peaceful" => Trait::Peaceful,
+                ref s if s == "Adaptive" => Trait::Adaptive,
+                _ => Trait::Intelligent,
+            };
+            // take the return value from result and add it to the species
+
+            Ok(selected_trait)
+        })
     }
 
-    #[derive(Debug, Clone, Copy)]
-    pub enum Environment {
-        EarthLike,
-        IceWorld,
-        Desert,
-        GasGiant,
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct Species {
-        pub name: String,
-        pub population: f64,
-        pub traits: Vec<Trait>,
-    }
-
-    #[derive(Debug, Clone, Copy, PartialEq)]
-    pub enum Trait {
-        Intelligent,
-        Aggressive,
-        Peaceful,
-        Adaptive,
-        // More traits can be added
-    }
-
-    impl Planet {
-        pub fn new(name: String, env: Environment) -> Self {
-            Planet {
-                name,
-                environment: env,
-                species: HashMap::new(),
-            }
-        }
-
-        pub fn add_species(&mut self, species: Species) {
-            self.species.insert(species.name.clone(), species);
-        }
-    }
-
+    // TODO: Insert into the database table
     pub fn simulate_planet_cycle(planet: &mut Planet) {
         let mut rng = rand::thread_rng();
         for species in planet.species.values_mut() {
@@ -73,14 +56,9 @@ pub mod simulation {
             species.population = new_population;
 
             // Simple evolution: randomly gain or lose traits
-
             if rng.gen::<f32>() < 0.01 {
                 // 1% chance per cycle
-                let new_trait = match rng.gen_range(0..3) {
-                    0 => Trait::Intelligent,
-                    1 => Trait::Aggressive,
-                    _ => Trait::Peaceful,
-                };
+                let new_trait = simulate_ai_evolution(&species).unwrap();
                 if !species.traits.contains(&new_trait) {
                     species.traits.push(new_trait);
                 }

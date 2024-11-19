@@ -1,10 +1,20 @@
+#[macro_use]
+extern crate diesel;
+
 use std::thread::sleep;
 use std::time::Duration;
 
 mod simulation; // Declares `simulation.rs` as a module
-use simulation::simulation::{simulate_planet_cycle, Environment, Planet, Species, Trait};
+use simulation::simulation::simulate_planet_cycle;
+
+mod schema;
+use schema::schema::{establish_connection, Environment, Planet, Species, Trait};
+
+// use diesel::pg::PgConnection;
 
 fn main() {
+    establish_connection();
+
     let mut earth = Planet::new("Earth".to_string(), Environment::EarthLike);
     earth.add_species(Species {
         name: "Human".to_string(),
