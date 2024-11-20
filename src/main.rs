@@ -1,14 +1,14 @@
-#[macro_use]
-extern crate diesel;
-
 use std::thread::sleep;
 use std::time::Duration;
 
 mod simulation; // Declares `simulation.rs` as a module
 use simulation::simulation::simulate_planet_cycle;
 
-mod schema;
-use schema::schema::{establish_connection, Environment, Planet, Species, Trait};
+mod models;
+use models::models::{Environment, Planet, Species, Trait};
+
+mod db;
+use db::db::establish_connection;
 
 // use diesel::pg::PgConnection;
 

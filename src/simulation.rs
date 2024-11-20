@@ -1,7 +1,5 @@
-// mod schema; // Declares `simulation.rs` as a module
-
 pub mod simulation {
-    use crate::schema::schema::{Environment, Planet, Species, Trait};
+    use crate::models::models::{Environment, Planet, Species, Trait};
     use pyo3::prelude::*;
     use rand::Rng;
 
