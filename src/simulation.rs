@@ -8,11 +8,28 @@ pub mod simulation {
     fn simulate_ai_evolution(species: &Species) -> PyResult<Trait> {
         Python::with_gil(|py| -> PyResult<Trait> {
             let current_dir = std::env::current_dir()?;
+            println!("Current directory: {:?}", current_dir);
+
+            let src_dir = current_dir.join("src");
+            let src_dir_str = src_dir.to_str().ok_or_else(|| {
+                pyo3::exceptions::PyValueError::new_err("Failed to convert src directory to string")
+            })?;
+
+            println!("Adding src directory to sys.path: {:?}", src_dir_str);
+
             let sys = py.import("sys")?;
             sys.getattr("path")?
-                .call_method1("append", (current_dir.to_str(),))?;
+                .call_method1("append", (src_dir_str,))?;
 
-            // TODO: fix module resolution
+            // Ensure the module is in the current directory
+            let evolution_module_path = src_dir.join("evolution.py");
+            if !evolution_module_path.exists() {
+                return Err(pyo3::exceptions::PyImportError::new_err(format!(
+                    "Module not found: {:?}",
+                    evolution_module_path
+                )));
+            }
+
             let evolution_module = py.import("evolution")?;
             let result = evolution_module.call_method0("evolve_species")?;
             // Process result

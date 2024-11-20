@@ -6,9 +6,11 @@ diesel::table! {
         planet -> Varchar,
         name -> Varchar,
         population -> Float8,
+        // How to match rust specific enum to database enum?
         traits -> Array<Nullable<Text>>,
     }
 }
+// Automatically generated content ends here
 
 pub mod schema {
     use diesel::pg::PgConnection;
