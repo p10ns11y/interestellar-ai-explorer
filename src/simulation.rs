@@ -1,5 +1,9 @@
 pub mod simulation {
     use crate::models::models::{Environment, Planet, Species, Trait};
+    use diesel::pg::PgConnection;
+    use diesel::{Insertable, RunQueryDsl};
+    use interstellar_ai_explorer::schema;
+
     use pyo3::prelude::*;
     use rand::Rng;
 
@@ -44,8 +48,7 @@ pub mod simulation {
         })
     }
 
-    // TODO: Insert into the database table
-    pub fn simulate_planet_cycle(planet: &mut Planet) {
+    pub fn simulate_planet_cycle(planet: &mut Planet, connection: &mut PgConnection) {
         let mut rng = rand::thread_rng();
         for species in planet.species.values_mut() {
             // Simple growth model based on environment and traits
@@ -78,6 +81,32 @@ pub mod simulation {
                     species.traits.push(new_trait);
                 }
             }
+
+            // Update species traits property and upate the database
+            let new_traits: Vec<String> =
+                Species::traits_for_storage(species.traits.clone()) as Vec<String>;
+
+            #[derive(Insertable)]
+            #[diesel(table_name = schema::species)]
+            struct SpeciesForStorage {
+                name: String,
+                population: f64,
+                traits: Vec<String>,
+                universe: String,
+                planet: String,
+            }
+            let species_data = SpeciesForStorage {
+                name: species.name.clone(),
+                planet: planet.name.clone(),
+                population: species.population,
+                traits: new_traits,
+                universe: species.universe.clone(),
+            };
+
+            diesel::insert_into(schema::species::table)
+                .values(&species_data)
+                .execute(connection)
+                .expect("Error saving new species");
         }
     }
 }

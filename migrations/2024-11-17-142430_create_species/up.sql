@@ -4,5 +4,5 @@ CREATE TABLE species (
     name VARCHAR NOT NULL,
     population FLOAT NOT NULL,
     traits TEXT[] NOT NULL,
-    star VARCHAR NOT NULL
+    universe VARCHAR NOT NULL
 );

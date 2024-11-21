@@ -24,11 +24,39 @@ pub mod models {
         Adaptive,
     }
 
+    impl Trait {
+        // pub fn from_str(s: &str) -> Self {
+        //     match s {
+        //         "Intelligent" => Trait::Intelligent,
+        //         "Aggressive" => Trait::Aggressive,
+        //         "Peaceful" => Trait::Peaceful,
+        //         "Adaptive" => Trait::Adaptive,
+        //         _ => Trait::Intelligent,
+        //     }
+        // }
+
+        pub fn to_str(&self) -> &str {
+            match self {
+                Trait::Intelligent => "Intelligent",
+                Trait::Aggressive => "Aggressive",
+                Trait::Peaceful => "Peaceful",
+                Trait::Adaptive => "Adaptive",
+            }
+        }
+    }
+
     #[derive(Debug, Clone)]
     pub struct Species {
         pub name: String,
         pub population: f64,
         pub traits: Vec<Trait>,
+        pub universe: String,
+    }
+
+    impl Species {
+        pub fn traits_for_storage(traits: Vec<Trait>) -> Vec<String> {
+            traits.iter().map(|t| t.to_str().to_string()).collect()
+        }
     }
 
     impl Planet {
